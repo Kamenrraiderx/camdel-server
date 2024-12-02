@@ -23,7 +23,7 @@ async function startApp() {
     let client = await clientConnection();
 
     app.use(cors({
-      origin: 'https://camdel-front-en7z3kvdg-anibal-reyes-projects.vercel.app',  // Permitir tu túnel de Cloudflare
+      origin: 'https://camdel-front-p3cepowpq-anibal-reyes-projects.vercel.app',  // Permitir tu túnel de Cloudflare
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,  // Si estás usando cookies o cabeceras de autenticación
