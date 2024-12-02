@@ -12,6 +12,8 @@ const sendGuide = async (req, res) => {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         }); // Cambiar a `false` para depuración
         const page = await browser.newPage({ timeout: 90000 });
+        await page.addStyleTag({ content: '* { transition: none !important; animation: none !important; }' });
+
         const formData = { ...req.body }
         console.log(formData)
         //Inicio de sesión
@@ -19,9 +21,17 @@ const sendGuide = async (req, res) => {
         await page.fill('#odcs-sign-in-username\\|input', process.env.CARGO_USER); // Puedes parametrizar las credenciales si necesario
         await page.fill('#odcs-sign-in-password\\|input', process.env.CARGO_PASSWORD);
 
-        console.log("si si")
+
+        // Espera a que el campo de contraseña esté presente
+        const passwordField = page.locator('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]');
+        await passwordField.waitFor({ state: 'visible' });
+
+        // Obtén el HTML del elemento
+        const htmlContent = await passwordField.evaluate((el) => el.outerHTML);
+
+        // Imprime el HTML en la consola
+        console.log('HTML del elemento:', htmlContent);
         console.log("HTML: ", await page.locator('#odcs-sign-in-password\\|input').innerHTML())
-        await page.screenshot({ path: './public/images/error.png' });
         const button = page.locator('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]');
 
         // Espera hasta que el botón esté habilitado
@@ -30,9 +40,11 @@ const sendGuide = async (req, res) => {
 
         await button.click();
 
+
+
         // Esperar a que el botón esté habilitado
-        await page.waitForSelector('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]:not([disabled])');
-        await page.click('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]');
+        //await page.waitForSelector('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]:not([disabled])');
+        //await page.click('button[aria-labelledby="botonIniciarSesion_oj8\\|text"]');
 
 
         // Ingreso al formulario
@@ -70,6 +82,7 @@ const sendGuide = async (req, res) => {
         await page.locator('#ui-id-39').getByLabel('Incrementar').click();
         await page.locator('#ui-id-39').getByLabel('Disminuir').click();
         await page.waitForTimeout(7000);
+        await page.screenshot({ path: './public/images/error.png' });
         await page.getByLabel('Agregar Paquete').click();
 
 
@@ -87,10 +100,11 @@ const sendGuide = async (req, res) => {
 
 
         // Cierra el navegador
-        //await browser.close();
+        await browser.close();
 
         const chatId = `504${formData.recipientPhone}@c.us`;
         const base64Image = fs.readFileSync(`${filePath}/${'Guías - 27-11-2024.pdf'}`, { encoding: 'base64' });
+        console.log("Esperando enviar mensaje")
         const media = new MessageMedia('application/pdf', base64Image);
         req.client.sendMessage(chatId, media, { caption: 'Su envio se ah realizado correctamente' })
             .then((response) => {
@@ -98,8 +112,8 @@ const sendGuide = async (req, res) => {
             }).catch(err => {
                 console.error(`Error sending message to ${formData.recipientName}:`, err);
             });
-
-        const base64Media = fs.readFileSync(`${filePath}/${'error.png'}`, { encoding: 'base64' });
+        const other = path.join(__dirname, '..', '..', '..', 'public', 'images');
+        const base64Media = fs.readFileSync(`${other}/${'error.png'}`, { encoding: 'base64' });
         const mediaImage = new MessageMedia('image/png', base64Media);
         req.client.sendMessage(chatId, mediaImage, { caption: 'Error al enviar guia' })
             .then((response) => {
@@ -107,6 +121,8 @@ const sendGuide = async (req, res) => {
             }).catch(err => {
                 console.error(`Error sending message to ${formData.recipientName}:`, err);
             });
+
+        console.log("Mensajes enviados")
         // Responde al cliente
         res.status(200).send({ message: 'Formulario enviado exitosamente' });
     } catch (error) {
