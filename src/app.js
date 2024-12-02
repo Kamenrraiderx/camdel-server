@@ -19,8 +19,15 @@ const port = process.env.PORT || 4000;
 async function startApp() {
   try {
     await connectDB();
-    
+
     let client = await clientConnection();
+
+    app.use(cors({
+      origin: 'https://camdel-front-en7z3kvdg-anibal-reyes-projects.vercel.app',  // Permitir tu túnel de Cloudflare
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,  // Si estás usando cookies o cabeceras de autenticación
+    }));
 
     // Usa el cliente en tu aplicación
     app.use((req, res, next) => {
@@ -31,10 +38,6 @@ async function startApp() {
       );
       next();
     });
-
-    app.use(cors({
-      //origin: 'https://ena-trasportes.vercel.app',
-    }));
 
 
     // Middleware para procesar JSON y datos codificados
