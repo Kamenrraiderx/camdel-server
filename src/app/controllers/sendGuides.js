@@ -81,7 +81,7 @@ const sendGuide = async (req, res) => {
         await page.locator('#montoPorArticulo-labelled-by').click();
         await page.locator('#ui-id-39').getByLabel('Incrementar').click();
         await page.locator('#ui-id-39').getByLabel('Disminuir').click();
-        await page.waitForTimeout(7000);
+        await page.waitForTimeout(500);
         await page.screenshot({ path: './public/images/error.png' });
         await page.getByLabel('Agregar Paquete').click();
 
